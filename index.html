@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Alarmes Digitais SC2 (Local)</title>
+    <!-- Carrega Tailwind CSS para estilização moderna e responsiva -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Define a fonte Inter como padrão */
+        body { font-family: 'Inter', sans-serif; background-color: #f7fafc; }
+        /* Estilo para células editáveis */
+        .editable-cell {
+            min-width: 100px;
+            cursor: pointer;
+            transition: background-color 0.15s;
+            overflow-wrap: break-word;
+        }
+        .editable-cell:hover {
+            background-color: #f3f4f6; /* Cor cinza mais clara ao passar o mouse */
+        }
+        .data-input {
+            width: 100%;
+            border: 1px solid #dc2626; /* red-600 */
+            padding: 4px;
+            border-radius: 4px;
+            box-shadow: 0 0 5px rgba(220, 38, 38, 0.5);
+            outline: none;
+        }
+        /* Estilo base para os botões de linha (Cinzas) */
+        .line-btn {
+            background-color: #e5e7eb; /* gray-200 */
+            color: #4b5563; /* gray-600 */
+            border: 1px solid #d1d5db; /* gray-300 */
+        }
+        /* Estilo para o botão de linha ativo/selecionado (Vermelho) */
+        .line-btn.active {
+            background-color: #dc2626; /* red-600 */
+            color: white;
+            border-color: #dc2626;
+            font-weight: 600;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+        .line-btn:hover:not(.active) {
+            background-color: #d1d5db; /* gray-300 */
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <!-- Conteúdo Principal da Aplicação -->
+    <div id="app-container" class="max-w-7xl mx-auto">
+        
+        <!-- NOVO BOTÃO DE ABRIR NO NAVEGADOR -->
+        <div id="open-in-browser-container" class="mb-4">
+            <button id="open-in-browser-btn" class="w-full px-4 py-2 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 transition duration-150 transform hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center text-sm md:text-base">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M11 3a1 1 0 100 2h3.586l-7.293 7.293a1 1 0 101.414 1.414L16 6.414V10a1 1 0 102 0V4a1 1 0 00-1-1h-6z" />
+                    <path d="M4 12a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H4zm1.5-1A1.5 1.5 0 004 12.5v2a1.5 1.5 0 001.5 1.5h2A1.5 1.5 0 009 14.5v-2A1.5 1.5 0 007.5 11h-2z" fill-rule="evenodd" clip-rule="evenodd" />
+                </svg>
+                Abrir no Navegador Padrão
+            </button>
+        </div>
+
+        <header class="mb-6 pb-4 border-b border-gray-200">
+            <!-- Título com cor alterada para Cinza Escuro (text-gray-800) -->
+            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-800 mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 inline-block mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm6 2a1 1 0 000 2h2a1 1 0 100-2H9zm-1 5a1 1 0 100 2h4a1 1 0 100-2H8z" clip-rule="evenodd" />
+                </svg>
+                Registro de Alarmes Digitais SC2
+            </h1>
+            <!-- Rodapé/Descrição alterada -->
+            <p class="text-gray-500 text-sm">
+                Departamento Técnico - MHK SC2
+            </p>
+        </header>
+
+        <!-- Filtros e Ações (Botões de Linha e Pesquisa) -->
+        <div class="flex flex-col gap-4 mb-6 items-center justify-between p-4 bg-white rounded-lg shadow-md">
+            
+            <!-- Botões de Linha -->
+            <div id="line-buttons" class="flex flex-wrap gap-2 justify-center sm:justify-start w-full">
+                <span class="text-sm font-medium text-gray-700 whitespace-nowrap pt-1">Visualizar Linha:</span>
+                <button data-line="Linha 1" class="line-btn px-3 py-1 text-sm font-medium rounded-lg transition duration-150">Linha 1</button>
+                <button data-line="Linha 2" class="line-btn px-3 py-1 text-sm font-medium rounded-lg transition duration-150">Linha 2</button>
+                <button data-line="Linha 4" class="line-btn px-3 py-1 text-sm font-medium rounded-lg transition duration-150">Linha 4</button>
+                <button data-line="Linha 5" class="line-btn px-3 py-1 text-sm font-medium rounded-lg transition duration-150">Linha 5</button>
+                <button data-line="Linha 6" class="line-btn px-3 py-1 text-sm font-medium rounded-lg transition duration-150">Linha 6</button>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 w-full justify-between">
+                <!-- Campo de Pesquisa -->
+                <div class="relative w-full sm:w-1/2">
+                    <input type="text" id="search-input" placeholder="Pesquisar em todas as linhas (Código ou Palavra-Chave)" class="w-full p-2 pl-10 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                
+                <!-- Botões de Ação (Adicionar e Exportar) -->
+                <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <!-- Botão Exportar CSV (Secundário - MAIS DISCRETO) -->
+                    <button id="export-csv-btn" class="w-full sm:w-auto px-4 py-2 bg-white text-gray-600 font-semibold rounded-lg border border-gray-300 shadow-sm hover:bg-gray-50 transition duration-150 active:scale-[0.98]">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block -mt-0.5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                        Exportar Tudo (CSV)
+                    </button>
+
+                    <!-- Botão Adicionar Registro (Principal) -->
+                    <button id="add-row-btn" class="w-full sm:w-auto px-4 py-2 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 transition duration-150 transform hover:scale-[1.02] active:scale-[0.98]">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block -mt-0.5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                        Adicionar Registro
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela de Registros -->
+        <!-- O overflow-x-auto é crucial para permitir a rolagem horizontal da tabela em telas pequenas -->
+        <div class="overflow-x-auto bg-white rounded-xl shadow-2xl">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-100 sticky top-0">
+                    <tr>
+                        <th scope="col" class="px-3 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider rounded-tl-xl">Linha</th>
+                        <th scope="col" class="px-3 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Data</th>
+                        <th scope="col" class="px-3 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Código</th>
+                        <!-- Larguras mínimas forçam a rolagem horizontal necessária para o conteúdo -->
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider min-w-[250px]">Identificação do Erro</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider min-w-[300px]">Resolução</th>
+                        <th scope="col" class="px-3 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider rounded-tr-xl">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="alarms-table-body" class="divide-y divide-gray-200">
+                    <!-- Linhas da tabela serão inseridas aqui pelo JavaScript -->
+                    <tr>
+                        <td colspan="6" class="p-4 text-center text-gray-500">Carregando dados...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Modal Customizado para Confirmação de Ações e Senha -->
+        <div id="custom-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 hidden items-center justify-center p-4">
+            <div class="bg-white rounded-xl p-6 w-full max-w-sm shadow-2xl transform transition-all">
+                <h3 id="modal-title" class="text-xl font-bold mb-3 text-red-700"></h3>
+                <p id="modal-message" class="mb-4 text-gray-700"></p>
+                <div id="modal-input-container" class="mb-4 hidden">
+                    <input type="password" id="modal-password-input" placeholder="Digite a senha" class="data-input w-full">
+                    <p id="modal-error-message" class="text-red-500 text-sm mt-1 hidden"></p>
+                </div>
+                <div id="modal-actions" class="flex justify-end gap-3">
+                    <button id="modal-cancel-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-150">Cancelar</button>
+                    <button id="modal-confirm-btn" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-150">Confirmar</button>
+                </div>
+                <button id="modal-close-btn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition duration-150 hidden">Fechar</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Polyfill simples para crypto.randomUUID (compatibilidade)
+        if (typeof crypto.randomUUID !== 'function') {
+            crypto.randomUUID = () => (
+                ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+                    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+                )
+            );
+        }
+
+        const STORAGE_KEY = 'alarmes_sc2_data';
+        const EXPORT_PASSWORD = 'admin123';
+        const LINES = ['Linha 1', 'Linha 2', 'Linha 4', 'Linha 5', 'Linha 6']; 
+        
+        let alarmsData = [];
+        let currentFilter = LINES[0]; 
+        let searchTerm = ''; 
+
+        // --- Dados Iniciais (Baseado nos CSVs fornecidos) ---
+        // Usados apenas se não houver dados no localStorage
+        const initialAlarmsTemplate = [
+            { id: crypto.randomUUID(), linha: 'Linha 1', data: '2025-10-28', codigo: 'E 174', identificacao: 'O DSP perdeu conexão - Conexão perdida (ping não OK)', resolucao: 'Trocar a placa interna COREDIGIT' },
+            { id: crypto.randomUUID(), linha: 'Linha 4', data: '2025-10-23', codigo: 'E59', identificacao: 'Erro do nível de guarda de tinta (Barra X) - Refill Beckhoff', resolucao: 'Trocado o sensor de nível do tanque superior que estava piscando, acusando Overflow.' },
+            { id: crypto.randomUUID(), linha: 'Linha 4', data: '2025-10-23', codigo: 'W46', identificacao: 'A bomba do reservatório está no estado OFF', resolucao: 'Após alarme por nível alto no tanque de cima a bomba precisa ser religada manualmente.' },
+            { id: crypto.randomUUID(), linha: 'Linha 4', data: '2025-10-28', codigo: 'E59', identificacao: 'Erro do nível de guarda de tinta (Barra X) - Refill Beckhoff', resolucao: 'Trocado a válvula de abastecimento do tanque superior.' },
+            { id: crypto.randomUUID(), linha: 'Linha 5', data: '2025-10-29', codigo: 'E03', identificacao: 'Erro carregamento firmware (BARRA X não encontrada)', resolucao: 'Foi necessário trocar a COREDIGT e atualizar manualmente via pendrive.' },
+            { id: crypto.randomUUID(), linha: 'Linha 5', data: '2025-10-29', codigo: 'E336', identificacao: 'Falha habilitação da correia - Ligava em By pass mas em automático dava alarme.', resolucao: 'Foi necessário reiniciar a geral da máquina (chave geral).' },
+            // Registros vazios para garantir que todas as linhas tenham pelo menos um item inicial
+            ...LINES.filter(l => !['Linha 1', 'Linha 4', 'Linha 5'].includes(l)).map(linha => ({ 
+                id: crypto.randomUUID(), linha, data: new Date().toISOString().substring(0, 10), 
+                codigo: 'NOVO', identificacao: 'Clique para descrever o erro', 
+                resolucao: 'Clique para descrever a resolução' 
+            }))
+        ];
+
+
+        // --- Funções de Armazenamento Local ---
+
+        /**
+         * Carrega os dados do localStorage ou usa o template inicial.
+         */
+        function loadDataFromLocalStorage() {
+            try {
+                const data = localStorage.getItem(STORAGE_KEY);
+                if (data) {
+                    // Adiciona IDs aos dados antigos que não os tinham, por segurança
+                    const parsedData = JSON.parse(data);
+                    return parsedData.map(item => ({ 
+                        ...item, 
+                        id: item.id || crypto.randomUUID() 
+                    }));
+                }
+            } catch (e) {
+                console.error("Erro ao carregar dados do localStorage:", e);
+                // Se der erro (ex: JSON inválido), retorna template
+            }
+            
+            // Retorna o template inicial com IDs únicos
+            console.log("Iniciando com dados de template.");
+            return initialAlarmsTemplate;
+        }
+
+        /**
+         * Salva o array de dados atualizado no localStorage.
+         */
+        function saveDataToLocalStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(alarmsData));
+                console.log("Dados salvos no localStorage.");
+            } catch (e) {
+                console.error("Erro ao salvar dados no localStorage:", e);
+                showModal('Erro de Salvar', 'Não foi possível salvar os dados localmente. O armazenamento pode estar cheio.', false);
+            }
+        }
+
+
+        // --- Modal Control Functions (Geral/Exclusão/Senha) ---
+        const modal = document.getElementById('custom-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+        const modalActions = document.getElementById('modal-actions');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+        const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+        const modalCancelBtn = document.getElementById('modal-cancel-btn');
+        const modalInputContainer = document.getElementById('modal-input-container');
+        const modalPasswordInput = document.getElementById('modal-password-input');
+        const modalErrorMessage = document.getElementById('modal-error-message');
+
+        /**
+         * Exibe o modal customizado para confirmação, informação ou entrada de senha.
+         * @param {string} title - Título do modal.
+         * @param {string} message - Mensagem do corpo do modal.
+         * @param {boolean} isConfirm - Se TRUE, mostra botões de Confirmar/Cancelar.
+         * @param {function} onConfirm - Função a ser executada no clique de Confirmação.
+         * @param {boolean} needsPassword - Se TRUE, exige a senha para confirmar.
+         */
+        function showModal(title, message, isConfirm = false, onConfirm = () => {}, needsPassword = false) {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            modal.classList.add('flex');
+            modal.classList.remove('hidden');
+
+            modalPasswordInput.value = '';
+            modalErrorMessage.classList.add('hidden');
+
+            if (needsPassword) {
+                modalInputContainer.classList.remove('hidden');
+                modalActions.classList.remove('hidden');
+                modalCloseBtn.classList.add('hidden');
+                modalConfirmBtn.textContent = 'Acessar';
+
+                modalPasswordInput.focus();
+                
+                modalConfirmBtn.onclick = () => {
+                    if (modalPasswordInput.value === EXPORT_PASSWORD) {
+                        modal.classList.add('hidden');
+                        onConfirm();
+                    } else {
+                        modalErrorMessage.textContent = 'Senha incorreta. Tente novamente.';
+                        modalErrorMessage.classList.remove('hidden');
+                        modalPasswordInput.value = '';
+                        modalPasswordInput.focus();
+                    }
+                };
+                modalCancelBtn.onclick = () => {
+                    modal.classList.add('hidden');
+                };
+
+            } else if (isConfirm) {
+                modalInputContainer.classList.add('hidden');
+                modalActions.classList.remove('hidden');
+                modalCloseBtn.classList.add('hidden');
+                modalConfirmBtn.textContent = 'Confirmar';
+                
+                modalConfirmBtn.onclick = () => {
+                    modal.classList.add('hidden');
+                    onConfirm();
+                };
+                modalCancelBtn.onclick = () => {
+                    modal.classList.add('hidden');
+                };
+            } else {
+                modalInputContainer.classList.add('hidden');
+                modalActions.classList.add('hidden');
+                modalCloseBtn.classList.remove('hidden');
+                modalCloseBtn.onclick = () => modal.classList.add('hidden');
+            }
+        }
+        
+        // --- Utility Functions ---
+
+        /**
+         * Gera um objeto de dados para um novo registro vazio.
+         */
+        function createNewAlarmObject(linha) {
+            const now = new Date();
+            const dateString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            return {
+                id: crypto.randomUUID(),
+                linha: linha,
+                data: dateString,
+                codigo: 'NOVO',
+                identificacao: 'Clique para descrever o erro',
+                resolucao: 'Clique para descrever a resolução',
+                createdAt: now.toISOString()
+            };
+        }
+
+        /**
+         * Adiciona um novo registro à lista local, salva e re-renderiza.
+         */
+        function addAlarm() {
+            const newAlarm = createNewAlarmObject(currentFilter);
+            alarmsData.unshift(newAlarm); // Adiciona no início
+            saveDataToLocalStorage();
+            renderTable();
+            showModal(
+                'Novo Registro Adicionado', 
+                `Um novo registro foi adicionado à Linha ${currentFilter}. Clique em qualquer célula para editá-lo.`,
+                false
+            );
+        }
+
+        /**
+         * Atualiza um campo de um documento localmente.
+         */
+        function updateAlarmField(id, field, value) {
+            const index = alarmsData.findIndex(alarm => alarm.id === id);
+            if (index > -1) {
+                alarmsData[index][field] = value;
+                // Atualiza a timestamp (opcional, apenas para referência)
+                alarmsData[index].updatedAt = new Date().toISOString(); 
+                saveDataToLocalStorage();
+                // A re-renderização completa não é necessária, mas garante a ordenação
+                renderTable(); 
+            } else {
+                console.error(`Documento ${id} não encontrado para atualização.`);
+            }
+        }
+
+        /**
+         * Remove um registro da lista local.
+         */
+        function deleteAlarm(id) {
+            showModal(
+                'Confirmação de Exclusão', 
+                'Tem certeza de que deseja excluir este registro? Esta ação é permanente e local.', 
+                true, 
+                () => {
+                    const initialLength = alarmsData.length;
+                    alarmsData = alarmsData.filter(alarm => alarm.id !== id);
+                    if (alarmsData.length < initialLength) {
+                        saveDataToLocalStorage();
+                        renderTable();
+                    } else {
+                        showModal('Erro', 'O registro não foi encontrado para exclusão.', false);
+                    }
+                }
+            );
+        }
+        
+        /**
+         * Função informativa, pois a edição é feita por clique direto na célula.
+         */
+        function editAlarm(id) {
+             showModal('Modo de Edição', 'Para editar, clique diretamente na célula da tabela que deseja modificar (Linha, Data, Código, Identificação ou Resolução).', false);
+        }
+
+        /**
+         * Exporta todos os dados para um arquivo CSV, requerendo senha.
+         */
+        function exportAllToCsv() {
+            // A mensagem agora apenas informa que é necessária a senha, sem mostrar qual é.
+            showModal(
+                'Acesso de Exportação', 
+                'Para exportar todos os dados, digite a senha de acesso:', 
+                false, 
+                () => {
+                    // Confirmação de senha bem-sucedida, prossegue com a exportação
+                    const data = alarmsData;
+                    if (data.length === 0) {
+                        showModal('Exportação Cancelada', 'Não há dados para exportar.', false);
+                        return;
+                    }
+
+                    // 1. Define os cabeçalhos do CSV
+                    const headers = ['Linha', 'Data', 'Código', 'Identificação do Erro', 'Resolução'];
+
+                    // 2. Função para escapar strings para CSV
+                    const escapeCsv = (str) => {
+                        if (str === null || str === undefined) return "";
+                        str = String(str).replace(/"/g, '""');
+                        if (str.includes(',') || str.includes('\n') || str.includes('"')) {
+                            return `"${str}"`;
+                        }
+                        return str;
+                    };
+
+                    // 3. Monta o corpo do CSV
+                    const rows = data.map(alarm => [
+                        escapeCsv(alarm.linha),
+                        escapeCsv(alarm.data),
+                        escapeCsv(alarm.codigo),
+                        escapeCsv(alarm.identificacao),
+                        escapeCsv(alarm.resolucao)
+                    ]);
+
+                    // 4. Combina cabeçalhos e linhas
+                    const csvContent = [
+                        headers.join(';'), // Usando ';' como separador para melhor compatibilidade com Excel em PT-BR
+                        ...rows.map(row => row.join(';'))
+                    ].join('\n');
+
+                    // 5. Cria o Blob e o link de download
+                    const blob = new Blob(["\uFEFF", csvContent], { type: 'text/csv;charset=utf-8;' }); // \uFEFF for BOM
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.setAttribute('href', url);
+                    
+                    const date = new Date().toISOString().substring(0, 10);
+                    link.setAttribute('download', `registro_alarmes_sc2_${date}.csv`);
+                    
+                    // Simula o clique
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    showModal('Exportação Concluída', 'Todos os dados foram exportados com sucesso para um arquivo CSV.', false);
+
+                }, 
+                true // isConfirm é true para usar o mesmo bloco de ações
+                , true // needsPassword é true
+            );
+        }
+
+
+        // --- Rendering and Event Handling ---
+
+        /**
+         * Inicia a edição de uma célula.
+         */
+        function startEditing(cell, id, field, initialValue) { 
+            // Verifica se já está em modo de edição
+            if (cell.querySelector('input, textarea, select')) return;
+
+            const isLongText = field === 'identificacao' || field === 'resolucao';
+
+            // Cria o campo de entrada
+            const input = document.createElement(isLongText ? 'textarea' : 'input');
+            input.className = 'data-input';
+            input.value = initialValue;
+
+            if (field === 'linha') {
+                // Para o campo Linha, usa um <select> com as linhas disponíveis
+                const select = document.createElement('select');
+                select.className = 'data-input';
+                LINES.forEach(optionText => {
+                    const option = document.createElement('option');
+                    option.value = optionText;
+                    option.textContent = optionText;
+                    if (optionText === initialValue) {
+                        option.selected = true;
+                    }
+                    select.appendChild(option);
+                });
+                
+                cell.innerHTML = '';
+                cell.appendChild(select);
+                select.focus();
+
+                const finishSelectEditing = () => {
+                    const newValue = select.value;
+                    if (newValue !== initialValue) {
+                        updateAlarmField(id, field, newValue);
+                    }
+                    // Restaura o modo de visualização
+                    cell.textContent = newValue;
+                    setupCellListeners(); // Reanexa listeners
+                };
+
+                select.onblur = finishSelectEditing;
+                select.onchange = finishSelectEditing; 
+                return;
+
+            } else {
+                // Para os demais campos, usa input/textarea
+                if (field === 'data') {
+                    input.type = 'date';
+                    // Garante que a data é válida para o campo type="date"
+                    input.value = initialValue.match(/^\d{4}-\d{2}-\d{2}$/) ? initialValue : '';
+                } else if (isLongText) {
+                    input.rows = 3;
+                    input.style.resize = 'none';
+                } else {
+                    input.type = 'text';
+                }
+            }
+
+            // Substitui o conteúdo da célula pelo input
+            cell.innerHTML = '';
+            cell.appendChild(input);
+            input.focus();
+
+            // Funções para finalizar a edição
+            const finishEditing = () => {
+                const newValue = input.value.trim();
+                
+                if (newValue !== initialValue) {
+                    updateAlarmField(id, field, newValue);
+                }
+                
+                // Restaura o modo de visualização
+                cell.textContent = newValue;
+                setupCellListeners(); // Reanexa listeners
+            };
+
+            // Eventos para finalizar a edição
+            input.onblur = finishEditing; // Salva quando perde o foco
+            input.onkeydown = (e) => {
+                if (e.key === 'Enter' && !isLongText) {
+                    e.preventDefault();
+                    finishEditing();
+                }
+                if (e.key === 'Escape') {
+                    // Cancela e reverte para o valor original
+                    cell.textContent = initialValue;
+                    setupCellListeners(); // Reanexa listeners
+                }
+            };
+        }
+
+        /**
+         * Configura os event listeners para as células editáveis após a renderização.
+         */
+        function setupCellListeners() {
+            // Remove listeners antigos (se o elemento for recriado) e reanexa o event delegation.
+            document.querySelectorAll('.editable-cell').forEach(cell => {
+                cell.onclick = null; 
+                const id = cell.getAttribute('data-alarm-id');
+                const field = cell.getAttribute('data-field');
+                
+                cell.onclick = () => {
+                    const initialValue = cell.textContent.trim();
+                    startEditing(cell, id, field, initialValue); 
+                };
+            });
+        }
+
+
+        /**
+         * Renderiza a tabela com os dados atuais, aplicando filtro de linha ou pesquisa universal.
+         */
+        function renderTable() {
+            const tableBody = document.getElementById('alarms-table-body');
+            const searchLower = searchTerm.toLowerCase();
+            const isSearchActive = searchLower.length > 0;
+            
+            let filteredData = alarmsData;
+
+            if (isSearchActive) {
+                // Se a pesquisa está ativa, filtra GLOBALMENTE por termo de pesquisa em todas as linhas
+                filteredData = alarmsData.filter(alarm => {
+                    const lineMatch = (alarm.linha || '').toLowerCase().includes(searchLower);
+                    const codeMatch = (alarm.codigo || '').toLowerCase().includes(searchLower);
+                    const identificationMatch = (alarm.identificacao || '').toLowerCase().includes(searchLower);
+                    const resolutionMatch = (alarm.resolucao || '').toLowerCase().includes(searchLower);
+                    
+                    return lineMatch || codeMatch || identificationMatch || resolutionMatch;
+                });
+            } else {
+                // Se a pesquisa NÃO está ativa, filtra apenas pela linha selecionada
+                filteredData = alarmsData.filter(alarm => alarm.linha === currentFilter);
+            }
+
+            // Ordenação (mantém a ordenação por data: mais recente primeiro)
+            const sortedData = filteredData.sort((a, b) => {
+                if (a.data < b.data) return 1;
+                if (a.data > b.data) return -1;
+                return 0;
+            });
+
+            if (sortedData.length === 0) {
+                let emptyMessage;
+                if (isSearchActive) {
+                    emptyMessage = `Nenhum registro encontrado em nenhuma linha com o termo de pesquisa: <b>"${searchTerm}"</b>.`;
+                } else {
+                    emptyMessage = `Nenhum registro encontrado para a linha <b>${currentFilter}</b>.`;
+                }
+                
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="p-6 text-center text-gray-500 bg-gray-50">
+                            ${emptyMessage}
+                            <button onclick="addAlarm()" class="ml-2 text-red-600 font-semibold hover:underline">Adicionar um novo registro agora.</button>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = sortedData.map((alarm, index) => {
+                const isEven = index % 2 === 0;
+                const rowClass = isEven ? 'bg-white hover:bg-gray-50' : 'bg-gray-50 hover:bg-gray-100';
+                
+                const fields = [
+                    { name: 'linha', value: alarm.linha, classes: 'font-semibold text-red-600' },
+                    { name: 'data', value: alarm.data || '', classes: 'whitespace-nowrap' },
+                    { name: 'codigo', value: alarm.codigo || '', classes: 'font-mono text-sm' },
+                    { name: 'identificacao', value: alarm.identificacao || '' },
+                    { name: 'resolucao', value: alarm.resolucao || '' },
+                ];
+
+                const cellHtml = fields.map(field => `
+                    <td class="px-3 md:px-6 py-3 text-sm text-gray-800 border-l border-r border-gray-100 editable-cell ${field.classes}" 
+                        data-alarm-id="${alarm.id}" 
+                        data-field="${field.name}">
+                        ${field.value}
+                    </td>
+                `).join('');
+
+                // Estrutura de Ações (Editar e Excluir)
+                const actionsHtml = `
+                    <td class="px-3 md:px-6 py-3 whitespace-nowrap text-sm font-medium">
+                        <div class="flex space-x-2 justify-start">
+                            <!-- Botão Editar (Informativo, usa o clique na célula) -->
+                            <button onclick="editAlarm('${alarm.id}')" 
+                                    class="text-gray-600 hover:text-gray-900 transition duration-150 transform hover:scale-105 p-1"
+                                    title="Editar Registro">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zm-5.464 2.828l1.414 1.414L8 12.414V14h1.586l4.414-4.414-1.414-1.414L10.586 10H8v-.586L13.586 5.586z" />
+                                </svg>
+                            </button>
+                            <!-- Botão Excluir (Vermelho) -->
+                            <button onclick="deleteAlarm('${alarm.id}')" 
+                                    class="text-red-600 hover:text-red-800 transition duration-150 transform hover:scale-105 p-1"
+                                    title="Excluir Registro">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                `;
+
+                return `<tr class="${rowClass}" data-id="${alarm.id}">${cellHtml}${actionsHtml}</tr>`;
+            }).join('');
+            
+            // ANEXA OS LISTENERS DE EVENTOS DE CLIQUE DE FORMA SEGURA
+            setupCellListeners();
+        }
+        
+        /**
+         * Configura os listeners e o estado visual dos botões de linha.
+         */
+        function setupLineButtons() {
+            const lineButtonsContainer = document.getElementById('line-buttons');
+            const buttons = lineButtonsContainer.querySelectorAll('.line-btn');
+            
+            // Remove qualquer estado ativo anterior e define o estado inicial
+            buttons.forEach(b => {
+                b.classList.remove('active');
+                if (b.getAttribute('data-line') === currentFilter) {
+                    b.classList.add('active');
+                }
+            });
+
+            buttons.forEach(btn => {
+                const line = btn.getAttribute('data-line');
+                btn.addEventListener('click', () => {
+                    // Mesmo que o filtro de linha não seja aplicado durante a pesquisa,
+                    // ele precisa ser atualizado para quando a pesquisa for limpa.
+                    currentFilter = line; 
+                    
+                    // Atualiza o estado visual
+                    buttons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    renderTable();
+                });
+            });
+        }
+        
+        /**
+         * Configura o listener para o campo de pesquisa.
+         */
+        function setupSearchInput() {
+            const searchInput = document.getElementById('search-input');
+            let searchTimeout;
+            
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                // Pequeno delay para evitar renderizações excessivas enquanto o usuário digita
+                searchTimeout = setTimeout(() => {
+                    searchTerm = searchInput.value;
+                    renderTable(); // Re-renderiza com o novo termo de pesquisa
+                }, 300);
+            });
+        }
+
+        /**
+         * Configura o listener para o botão de 'Abrir no Navegador Padrão'.
+         */
+        function setupOpenInBrowserButton() {
+            document.getElementById('open-in-browser-btn').addEventListener('click', () => {
+                // Tenta forçar a abertura da URL atual em uma nova janela.
+                // Em muitos WebViews (navegadores embutidos de apps), isso aciona
+                // o navegador padrão do sistema.
+                window.open(window.location.href, '_blank');
+            });
+        }
+
+        /**
+         * Função principal de inicialização
+         */
+        function initializeApp() {
+            alarmsData = loadDataFromLocalStorage();
+            
+            // Inicializa a linha de filtro para a primeira linha ou a linha do primeiro registro
+            currentFilter = alarmsData.length > 0 ? alarmsData[0].linha : LINES[0];
+
+            setupLineButtons();
+            setupSearchInput();
+            setupOpenInBrowserButton(); // Novo botão
+            
+            // Adiciona listener para os botões de ação
+            document.getElementById('add-row-btn').addEventListener('click', addAlarm);
+            document.getElementById('export-csv-btn').addEventListener('click', exportAllToCsv);
+
+            renderTable();
+        }
+
+        // Expor funções globais (necessário para os botões de ação e modais no HTML)
+        window.startEditing = startEditing;
+        window.deleteAlarm = deleteAlarm;
+        window.editAlarm = editAlarm; 
+        window.addAlarm = addAlarm; 
+
+        // Inicia a aplicação
+        window.onload = initializeApp;
+    </script>
+</body>
+</html>
