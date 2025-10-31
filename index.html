@@ -306,30 +306,6 @@
                 });
             // A renderização é feita automaticamente pelo listener 'value'
         }
-
-        /**
-         * Remove um registro do Firebase, requerindo confirmação.
-         */
-        function deleteAlarm(firebaseId) {
-            showModal(
-                'Confirmação de Exclusão', 
-                'Tem certeza de que deseja excluir este registro? Esta ação é permanente e será refletida para todos.', 
-                true, 
-                () => {
-                    // Usa .remove() para deletar o registro
-                    alarmsRef.child(firebaseId).remove()
-                        .then(() => {
-                            console.log("Registro excluído do Firebase!");
-                        })
-                        .catch(error => {
-                            console.error("Erro ao excluir registro:", error);
-                            showModal('Erro de Exclusão', `Não foi possível excluir o dado: ${error.message}`, false);
-                        });
-                    // A renderização é feita automaticamente pelo listener 'value'
-                }
-            );
-        }
-
         // ====================================================================
         // === 3. FUNÇÕES MODAL, UTILITÁRIAS E RENDERIZAÇÃO (Adaptadas) =======
         // ====================================================================
