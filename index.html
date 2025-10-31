@@ -1,6 +1,42 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 <head>
+    <title>Histórico de Alarmes</title>
+</head>
+<body>
+
+    <h1>Histórico de Alarmes</h1>
+    <ul id="historico-lista"></ul>
+
+    <form id="formulario-alarme">
+        <input type="text" id="campo-info" placeholder="Descreva a nova informação" required>
+        <button type="submit">Adicionar ao Histórico</button>
+    </form>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <script>
+      // Cole o seu objeto firebaseConfig aqui!
+      const firebaseConfig = {
+          apiKey: "SUA_API_KEY",
+          authDomain: "alarmes-das-digitais-XXXX.firebaseapp.com",
+          projectId: "alarmes-das-digitais-XXXX",
+          storageBucket: "alarmes-das-digitais-XXXX.appspot.com",
+          messagingSenderId: "SEU_ID",
+          appId: "SEU_APP_ID",
+          databaseURL: "https://alarmes-das-digitais-default-rtdb.firebaseio.com"
+      };
+
+      // Inicializa o app e a referência ao banco de dados
+      const app = firebase.initializeApp(firebaseConfig);
+      const db = app.database();
+    </script>
+
+    <script src="logica-firebase.js"></script> 
+
+</body>
+</html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Alarmes Digitais SC2 (Local)</title>
