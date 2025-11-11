@@ -183,8 +183,9 @@
         const alarmsRef = db.ref('alarms_sc2'); 
         
         // Configurações e variáveis locais
-        // const STORAGE_KEY = 'alarmes_sc2_data'; // REMOVIDO, AGORA É FIREBASE
         const EXPORT_PASSWORD = 'admin123';
+        // >>> SENHA PARA ADICIONAR E DELETAR REGISTROS (exp321)
+        const ADD_PASSWORD = 'exp321'; 
         const LINES = ['Linha 1', 'Linha 2', 'Linha 4', 'Linha 5', 'Linha 6']; 
         
         let alarmsData = [];
@@ -262,7 +263,7 @@
 
         /**
          * Adiciona um novo registro ao Firebase Realtime Database.
-         * É chamada ao clicar no botão 'Adicionar Registro'.
+         * É chamada ao clicar no botão 'Adicionar Registro', APÓS a autenticação.
          */
         function addAlarm() {
             const newAlarm = createNewAlarmObject(currentFilter);
@@ -306,11 +307,35 @@
                 });
             // A renderização é feita automaticamente pelo listener 'value'
         }
+
+        // >>> FUNÇÃO DELETAR UM REGISTRO (COM SOLICITAÇÃO DE SENHA)
+        function deleteAlarm(firebaseId) {
+            // 1. Exibe o modal solicitando a senha
+            showModal(
+                'Confirmação de Exclusão',
+                'Você tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita. Digite a senha para confirmar:',
+                false, // Não é confirmação simples
+                () => {
+                    // 2. Função de Confirmação (executada APÓS a validação da senha)
+                    alarmsRef.child(firebaseId).remove()
+                        .then(() => {
+                            showModal('Excluído', 'O registro foi removido com sucesso.', false);
+                        })
+                        .catch(error => {
+                            console.error("Erro ao deletar registro:", error);
+                            showModal('Erro ao Excluir', `Não foi possível deletar o registro: ${error.message}`, false);
+                        });
+                },
+                true, // needsPassword = true
+                ADD_PASSWORD // Usa a senha de Adicionar/Deletar: "exp321"
+            );
+        }
+
         // ====================================================================
         // === 3. FUNÇÕES MODAL, UTILITÁRIAS E RENDERIZAÇÃO (Adaptadas) =======
         // ====================================================================
         
-        // ... (Modal Control Functions: showModal, etc. - MANTIDAS)
+        // ... (Modal Control Functions: showModal, etc.)
         const modal = document.getElementById('custom-modal');
         const modalTitle = document.getElementById('modal-title');
         const modalMessage = document.getElementById('modal-message');
@@ -326,11 +351,12 @@
          * Exibe o modal customizado para confirmação, informação ou entrada de senha.
          * @param {string} title - Título do modal.
          * @param {string} message - Mensagem do corpo do modal.
-         * @param {boolean} isConfirm - Se TRUE, mostra botões de Confirmar/Cancelar.
-         * @param {function} onConfirm - Função a ser executada no clique de Confirmação.
+         * @param {boolean} isConfirm - Se TRUE, mostra botões de Confirmar/Cancelar (usado para confirmações simples sem senha).
+         * @param {function} onConfirm - Função a ser executada no clique de Confirmação (ou após validação da senha).
          * @param {boolean} needsPassword - Se TRUE, exige a senha para confirmar.
+         * @param {string} requiredPassword - A senha necessária (ex: EXPORT_PASSWORD ou ADD_PASSWORD).
          */
-        function showModal(title, message, isConfirm = false, onConfirm = () => {}, needsPassword = false) {
+        function showModal(title, message, isConfirm = false, onConfirm = () => {}, needsPassword = false, requiredPassword = EXPORT_PASSWORD) {
             modalTitle.textContent = title;
             modalMessage.textContent = message;
             modal.classList.add('flex');
@@ -340,6 +366,7 @@
             modalErrorMessage.classList.add('hidden');
 
             if (needsPassword) {
+                // Modo de Senha
                 modalInputContainer.classList.remove('hidden');
                 modalActions.classList.remove('hidden');
                 modalCloseBtn.classList.add('hidden');
@@ -347,10 +374,15 @@
 
                 modalPasswordInput.focus();
                 
+                // Remove listeners antigos para evitar múltiplas execuções
+                modalConfirmBtn.onclick = null;
+                modalCancelBtn.onclick = null;
+                
                 modalConfirmBtn.onclick = () => {
-                    if (modalPasswordInput.value === EXPORT_PASSWORD) {
+                    // Verifica se a senha digitada é a senha REQUERIDA
+                    if (modalPasswordInput.value === requiredPassword) {
                         modal.classList.add('hidden');
-                        onConfirm();
+                        onConfirm(); // Executa a função de sucesso
                     } else {
                         modalErrorMessage.textContent = 'Senha incorreta. Tente novamente.';
                         modalErrorMessage.classList.remove('hidden');
@@ -363,11 +395,16 @@
                 };
 
             } else if (isConfirm) {
+                // Modo de Confirmação Simples
                 modalInputContainer.classList.add('hidden');
                 modalActions.classList.remove('hidden');
                 modalCloseBtn.classList.add('hidden');
                 modalConfirmBtn.textContent = 'Confirmar';
                 
+                // Remove listeners antigos
+                modalConfirmBtn.onclick = null;
+                modalCancelBtn.onclick = null;
+
                 modalConfirmBtn.onclick = () => {
                     modal.classList.add('hidden');
                     onConfirm();
@@ -376,9 +413,14 @@
                     modal.classList.add('hidden');
                 };
             } else {
+                // Modo de Informação (apenas botão Fechar)
                 modalInputContainer.classList.add('hidden');
                 modalActions.classList.add('hidden');
                 modalCloseBtn.classList.remove('hidden');
+                
+                // Remove listeners antigos
+                modalCloseBtn.onclick = null;
+
                 modalCloseBtn.onclick = () => modal.classList.add('hidden');
             }
         }
@@ -410,7 +452,7 @@
         }
 
         /**
-         * Exporta todos os dados para um arquivo CSV, requerendo senha.
+         * Exporta todos os dados para um arquivo CSV, requerendo senha EXPORT_PASSWORD.
          */
         function exportAllToCsv() {
             showModal(
@@ -473,6 +515,7 @@
                 }, 
                 true // isConfirm é true
                 , true // needsPassword é true
+                , EXPORT_PASSWORD // Senha de Exportação
             );
         }
 
@@ -528,6 +571,7 @@
                 // Para os demais campos, usa input/textarea
                 if (field === 'data') {
                     input.type = 'date';
+                    // Garante que o input[type="date"] aceite apenas o formato YYYY-MM-DD
                     input.value = initialValue.match(/^\d{4}-\d{2}-\d{2}$/) ? initialValue : '';
                 } else if (isLongText) {
                     input.rows = 3;
@@ -687,21 +731,28 @@
                 renderTable();
             });
 
-            // --- 3. Botão Adicionar Registro ---
-            document.getElementById('add-row-btn').addEventListener('click', addAlarm);
+            // --- 3. Botão Adicionar Registro (Com Senha) ---
+            document.getElementById('add-row-btn').addEventListener('click', () => {
+                showModal(
+                    'Acesso para Adicionar Registro',
+                    'Digite a senha para autorizar a adição de um novo registro:',
+                    false, // Não é confirmação simples
+                    addAlarm, // Função a ser executada após autenticação
+                    true, // Requer senha
+                    ADD_PASSWORD // A senha necessária: "exp321"
+                );
+            });
 
-            // --- 4. Botão Exportar CSV ---
+            // --- 4. Botão Exportar CSV (Com Senha) ---
             document.getElementById('export-csv-btn').addEventListener('click', exportAllToCsv);
             
             // --- 5. Botão Abrir no Navegador ---
-            // Adicionado apenas por completude, se a aplicação for rodada em um webview
             document.getElementById('open-in-browser-btn').addEventListener('click', () => {
                 window.open(window.location.href, '_system');
             });
 
 
             // --- INICIALIZAÇÃO ---
-            // Substitui o loadDataFromLocalStorage() e inicia a escuta em tempo real!
             loadAndListenForData(); 
             
         });
