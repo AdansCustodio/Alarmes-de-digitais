@@ -165,15 +165,16 @@
             );
         }
 
-        // ⚠️ SUBSTITUA ESTES VALORES PELOS SEUS REAIS DO CONSOLE FIREBASE!
+        // ⚠️ CONFIGURAÇÃO DO FIREBASE COM AS CHAVES FORNECIDAS
         const firebaseConfig = {
-            apiKey: "SUA_API_KEY",
-            authDomain: "alarmes-das-digitais-XXXX.firebaseapp.com",
-            projectId: "alarmes-das-digitais-XXXX",
-            storageBucket: "alarmes-das-digitais-XXXX.appspot.com",
-            messagingSenderId: "SEU_ID",
-            appId: "SEU_APP_ID",
-            databaseURL: "https://alarmes-das-digitais-default-rtdb.firebaseio.com"
+            apiKey: "AIzaSyDBgkoWIiGoKrc4fS-0-ynwyQwzpAZ4Qio",
+            authDomain: "alarmes-das-digitais.firebaseapp.com",
+            databaseURL: "https://alarmes-das-digitais-default-rtdb.firebaseio.com",
+            projectId: "alarmes-das-digitais",
+            storageBucket: "alarmes-das-digitais.firebasestorage.app",
+            messagingSenderId: "414195454009",
+            appId: "1:414195454009:web:0d5d0080dea7d1a9793de8",
+            measurementId: "G-Q8G8MK7JZD"
         };
 
         // Inicializa o app e a referência ao banco de dados
@@ -514,7 +515,6 @@
 
                 }, 
                 true // isConfirm é true
-                , true // needsPassword é true
                 , EXPORT_PASSWORD // Senha de Exportação
             );
         }
